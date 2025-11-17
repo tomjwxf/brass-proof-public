@@ -1,0 +1,67 @@
+# Cloudflare Workers configuration for BRASS Deterministic Verifier
+# Copy to wrangler.toml and configure your environment
+#
+# BRASS supports two storage backends:
+# 1. KV (Community tier) - Best-effort rate limiting, free self-hosting
+# 2. Durable Objects (Enterprise tier) - Atomic rate limiting, strict enforcement
+
+name = "brass-verifier-deterministic"
+main = "deterministic-verifier.js"
+compatibility_date = "2025-01-01"
+account_id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
+
+# KV Namespace (Community tier - best-effort rate limiting)
+# Always required even if using Durable Objects backend
+[[kv_namespaces]]
+binding = "BRASS_KV"
+id = "YOUR_KV_NAMESPACE_ID"
+preview_id = "YOUR_KV_PREVIEW_ID"
+
+# Durable Objects (Enterprise tier - atomic rate limiting)
+# Uncomment these sections to enable Durable Objects backend:
+
+# [[durable_objects.bindings]]
+# name = "BRASS_COUNTER"
+# class_name = "BrassCounterDO"
+# script_name = "brass-verifier-deterministic"
+
+# [[migrations]]
+# tag = "v1"
+# new_classes = ["BrassCounterDO"]
+
+[vars]
+# Storage backend: "kv" (default, Community tier) or "durable_objects" (Enterprise tier)
+STORAGE_BACKEND = "kv"
+
+# Default rate limit (requests per day)
+BRASS_RATE_LIMIT = "100"
+
+# Secrets (set via: wrangler secret put <NAME>)
+# DO NOT put actual secret values here - use wrangler secret put instead
+# 
+# Required secrets:
+# - BRASS_SECRET_KEY: API key for verifier authentication
+# - BRASS_ISSUER_PUBKEY: Issuer's public key (base64url P-256 compressed point)
+# - BRASS_KV_SECRET: 32-byte random secret for idempotency key derivation (base64url)
+#
+# Example commands:
+#   wrangler secret put BRASS_SECRET_KEY
+#   wrangler secret put BRASS_ISSUER_PUBKEY  
+#   wrangler secret put BRASS_KV_SECRET
+#
+# Deploy:
+#   wrangler publish
+#
+# Tail logs:
+#   wrangler tail
+
+# Legacy configuration (for backwards compatibility with strict-verifier.js)
+# If you want to use the old strict-verifier.js instead:
+# name = "brass-strict-verifier"
+# main = "strict-verifier.js"
+# [[durable_objects.bindings]]
+# name = "COUNTER"
+# class_name = "COUNTER"
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"

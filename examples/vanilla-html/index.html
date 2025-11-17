@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BRASS Vanilla HTML Example</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 20px;
+      padding: 48px;
+      max-width: 700px;
+      width: 100%;
+      box-shadow: 0 25px 80px rgba(0,0,0,0.4);
+    }
+    .badge {
+      display: inline-block;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 6px 16px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+    h1 {
+      font-size: 32px;
+      margin-bottom: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle { color: #718096; font-size: 16px; line-height: 1.6; margin-bottom: 32px; }
+    label { display: block; margin-bottom: 10px; font-weight: 600; color: #2d3748; }
+    input, textarea {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      font-family: inherit;
+      font-size: 15px;
+      transition: all 0.2s;
+      margin-bottom: 24px;
+    }
+    textarea { resize: vertical; min-height: 140px; }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    button {
+      width: 100%;
+      padding: 16px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 17px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+    }
+    button:disabled {
+      background: #cbd5e0;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 16px 20px;
+      border-radius: 10px;
+      font-size: 14px;
+      display: none;
+    }
+    .status.success { display: block; background: linear-gradient(135deg, #d4fc79 0%, #96e6a1 100%); color: #1e4620; }
+    .status.error { display: block; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: #fff; }
+    .status.loading { display: block; background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%); color: #2c5282; }
+    .info-box {
+      margin-top: 32px;
+      padding: 24px;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      border-radius: 12px;
+      border-left: 4px solid #667eea;
+    }
+    .info-box h3 { font-size: 16px; margin-bottom: 12px; color: #2d3748; }
+    .info-box p { font-size: 14px; line-height: 1.8; color: #4a5568; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <span class="badge">🛡️ NO BUILD TOOLS REQUIRED</span>
+    <h1>Vanilla HTML + BRASS</h1>
+    <p class="subtitle">Drop this file into any website. No frameworks, no bundlers - just production-grade cryptographic privacy.</p>
+
+    <form id="contactForm">
+      <label for="name">Your Name</label>
+      <input type="text" id="name" placeholder="John Doe" required data-testid="input-name" />
+
+      <label for="message">Your Message</label>
+      <textarea id="message" placeholder="I love how BRASS works without any CAPTCHAs!" required data-testid="input-message"></textarea>
+      
+      <button type="submit" id="submitBtn" data-testid="button-submit">Send Message</button>
+    </form>
+
+    <div id="status" class="status"></div>
+
+    <div class="info-box">
+      <h3>🎯 What happens when you click submit:</h3>
+      <p>
+        1. JavaScript mints a BRASS token from the issuer (cryptographic proof)<br>
+        2. Token is bound to your request with zero-knowledge proofs<br>
+        3. Rate limiting prevents abuse (3 submissions/day) without tracking you<br>
+        4. All cryptography uses <strong>production-grade brass-strict-client.js</strong>
+      </p>
+    </div>
+  </div>
+
+  <!-- Load Noble crypto libraries -->
+  <script src="https://cdn.jsdelivr.net/npm/@noble/curves@1.4.0/p256.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@noble/hashes@1.4.0/sha256.js"></script>
+  <script>
+    // Make Noble libraries available to brass-client.js
+    window.nobleCurves = { p256: noble_curves_p256 }
+    window.nobleHashes = { sha256: noble_hashes_sha256, utils: noble_hashes_utils, hmac: noble_hashes_hmac }
+  </script>
+  
+  <!-- Load production-grade BRASS client -->
+  <script src="./brass-client.js"></script>
+  
+  <!-- Application logic -->
+  <script>
+    const form = document.getElementById('contactForm')
+    const statusDiv = document.getElementById('status')
+    const submitBtn = document.getElementById('submitBtn')
+    let submissionCount = 0
+    const MAX_SUBMISSIONS = 3
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault()
+      
+      const name = document.getElementById('name').value.trim()
+      const message = document.getElementById('message').value.trim()
+      
+      if (!name || !message) {
+        showStatus('Please fill in all fields', 'error')
+        return
+      }
+
+      submitBtn.disabled = true
+      showStatus('🔐 Minting BRASS token...', 'loading')
+
+      try {
+        // Mint token using production brass-strict-client.js
+        const token = await window.mintEpochPass({
+          originCanonical: window.location.protocol + '//' + window.location.hostname,
+          epoch: window.currentEpochDays(),
+          subPolicy: 'contact-form'
+        })
+        
+        showStatus('📡 Creating cryptographic proof...', 'loading')
+
+        // Build spend proof with HTTP context binding
+        const requestBody = JSON.stringify({ name, message })
+        const brassToken = window.buildSpend({
+          token,
+          httpMethod: 'POST',
+          normalizedPath: '/api/contact',
+          bodyBytes: new TextEncoder().encode(requestBody)
+        })
+
+        // Simulate backend verification
+        await new Promise(resolve => setTimeout(resolve, 800))
+        submissionCount++
+
+        if (submissionCount > MAX_SUBMISSIONS) {
+          showStatus('❌ Rate limit exceeded. Try again in 24 hours.', 'error')
+        } else {
+          showStatus(`✅ Message sent! ${MAX_SUBMISSIONS - submissionCount} submissions remaining today.`, 'success')
+          form.reset()
+        }
+      } catch (error) {
+        console.error('Error:', error)
+        showStatus('❌ Failed to submit. Check console for details.', 'error')
+      } finally {
+        submitBtn.disabled = false
+      }
+    })
+
+    function showStatus(message, type) {
+      statusDiv.textContent = message
+      statusDiv.className = `status ${type}`
+    }
+
+    console.log('%c🛡️ BRASS Protection Active', 'font-size: 20px; font-weight: bold; color: #667eea;')
+    console.log('This form uses production-grade brass-strict-client.js for cryptographic privacy.')
+  </script>
+</body>
+</html>

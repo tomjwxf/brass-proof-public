@@ -1,0 +1,36 @@
+# CRITICAL: Prevent proprietary code from being committed
+
+# Proprietary directories - NEVER COMMIT
+brass-abuse-shield/
+brass-proof-private/
+cli/
+client/
+server/
+commercial/
+public/
+scripts/
+shared/
+test/
+
+# Build outputs
+node_modules/
+dist/
+build/
+.next/
+
+# Environment files
+.env
+.env.*
+
+# Config files from private repo
+drizzle.config.ts
+package.json
+package-lock.json
+tsconfig.json
+vite.config.ts
+components.json
+.replit
+
+# IDE & OS
+.vscode/
+.DS_Store

@@ -1,0 +1,39 @@
+name = "brass-verifier"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+# KV namespace for rate limiting and replay protection
+[[kv_namespaces]]
+binding = "BRASS_KV"
+id = "YOUR_KV_NAMESPACE_ID"  # Replace with actual KV namespace ID from `wrangler kv:namespace create BRASS_KV`
+
+# Durable Objects for distributed rate limiting (optional but recommended for high traffic)
+# [[migrations]]
+# tag = "v1"
+# new_sqlite_classes = ["RateLimitCounter"]
+
+# [[durable_objects.bindings]]
+# name = "RATE_LIMIT_COUNTER"
+# class_name = "RateLimitCounter"
+# script_name = "brass-verifier"
+
+# Environment variables (set via `wrangler secret put`)
+# BRASS_SECRET_KEY - Your API secret key (64+ char hex)
+# BRASS_ISSUER_PUBKEY - Public key from BRASS issuer
+
+[build]
+command = ""
+
+[env.production]
+name = "brass-verifier-production"
+
+[[env.production.kv_namespaces]]
+binding = "BRASS_KV"
+id = "YOUR_PRODUCTION_KV_NAMESPACE_ID"
+
+[env.staging]
+name = "brass-verifier-staging"
+
+[[env.staging.kv_namespaces]]
+binding = "BRASS_KV"
+id = "YOUR_STAGING_KV_NAMESPACE_ID"

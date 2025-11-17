@@ -1,0 +1,14 @@
+# Example wrangler.toml for BRASS Issuer Worker (INTERMEDIATE mode)
+# Copy this to issuer-wrangler.toml and fill in your actual values
+
+name = "brass-issuer-intermediate"
+main = "issuer-intermediate.js"
+compatibility_date = "2025-01-01"
+
+# Set secrets via 'wrangler secret put ISSUER_K_HEX' 
+# NEVER commit the secret key to the repository
+[vars]
+# ISSUER_K_HEX = "64-char hex string (32 bytes)"
+
+[account]
+id = "YOUR_CLOUDFLARE_ACCOUNT_ID"
